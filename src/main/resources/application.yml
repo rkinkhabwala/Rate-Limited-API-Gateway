@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  webflux:
+    problemdetails:
+      enabled: true
+
+apigw:
+  # Protects /admin/**. Override with the APIGW_ADMIN_TOKEN environment variable in any real deployment.
+  admin-token: ${APIGW_ADMIN_TOKEN:change-me-in-production}
+  # If Redis is down: true = let traffic through unmetered, false = reject with 503.
+  fail-open: true
+  plans:
+    free:
+      replenish-rate-per-second: 2
+      burst-capacity: 5
+      monthly-quota: 1000
+    pro:
+      replenish-rate-per-second: 20
+      burst-capacity: 50
+      monthly-quota: 100000
+    enterprise:
+      replenish-rate-per-second: 200
+      burst-capacity: 400
+      monthly-quota: 10000000
+  routes:
+    # Public echo service, handy for trying the gateway locally.
+    - id: httpbin
+      path: /api/httpbin/**
+      uri: https://httpbin.org
+      strip-prefix: 2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    dev.practice.gateway: INFO
